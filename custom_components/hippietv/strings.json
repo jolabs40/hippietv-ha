@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to HippieTV",
+        "description": "Enter the IP address of your Android TV device running HippieTV.",
+        "data": {
+          "host": "Host (IP address)",
+          "port": "Port",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to HippieTV. Verify the IP, port, and that the webserver is running."
+    },
+    "abort": {
+      "already_configured": "This HippieTV device is already configured."
+    }
+  }
+}
