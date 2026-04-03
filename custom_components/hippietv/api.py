@@ -127,6 +127,12 @@ class HippieTvApi:
             "POST", "/api/player/volume", {"mute": mute}
         )
 
+    async def async_volume_step(self, direction: str) -> dict:
+        """Step volume up or down."""
+        return await self._request(
+            "POST", "/api/player/volume", {"step": direction}
+        )
+
     # --- Info ---
 
     async def async_get_channels(self, category_id: str | None = None) -> list:

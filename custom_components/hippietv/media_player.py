@@ -60,6 +60,7 @@ class HippieTvMediaPlayer(
         | MediaPlayerEntityFeature.STOP
         | MediaPlayerEntityFeature.VOLUME_MUTE
         | MediaPlayerEntityFeature.VOLUME_SET
+        | MediaPlayerEntityFeature.VOLUME_STEP
         | MediaPlayerEntityFeature.SELECT_SOURCE
         | MediaPlayerEntityFeature.PLAY_MEDIA
     )
@@ -107,15 +108,59 @@ class HippieTvMediaPlayer(
         return None
 
     @property
+    def media_content_id(self) -> str | None:
+        """Return the stream URL as content ID."""
+        if not self.coordinator.data:
+            return None
+        return self.coordinator.data.get("stream_url") or None
+
+    @property
     def media_title(self) -> str | None:
         """Return the title of current media."""
         if not self.coordinator.data:
             return None
-        return self.coordinator.data.get("title") or None
+        data = self.coordinator.data
+
+        # En Live TV, afficher le programme EPG si disponible
+        epg = data.get("epg")
+        if epg and isinstance(epg, dict) and epg.get("title"):
+            return epg["title"]
+
+        return data.get("title") or None
+
+    @property
+    def media_series_title(self) -> str | None:
+        """Return the series name."""
+        if not self.coordinator.data:
+            return None
+        series = self.coordinator.data.get("series")
+        if series and isinstance(series, dict):
+            return series.get("name") or None
+        return None
+
+    @property
+    def media_season(self) -> str | None:
+        """Return the season number."""
+        if not self.coordinator.data:
+            return None
+        series = self.coordinator.data.get("series")
+        if series and isinstance(series, dict) and series.get("season"):
+            return str(series["season"])
+        return None
+
+    @property
+    def media_episode(self) -> str | None:
+        """Return the episode number."""
+        if not self.coordinator.data:
+            return None
+        series = self.coordinator.data.get("series")
+        if series and isinstance(series, dict) and series.get("episode"):
+            return str(series["episode"])
+        return None
 
     @property
     def media_channel(self) -> str | None:
-        """Return the channel of current media."""
+        """Return the channel name."""
         if not self.coordinator.data:
             return None
         return self.coordinator.data.get("title") or None
@@ -196,18 +241,58 @@ class HippieTvMediaPlayer(
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra attributes for HA."""
         attrs = {}
-        if self.coordinator.data:
-            data = self.coordinator.data
-            if data.get("current_program"):
-                attrs["current_program"] = data["current_program"]
-            if data.get("media_type"):
-                attrs["media_type"] = data["media_type"]
-            if data.get("stream_url"):
-                attrs["stream_url"] = data["stream_url"]
-            profile = data.get("profile", {})
-            if isinstance(profile, dict):
-                attrs["profile_name"] = profile.get("name", "")
-                attrs["profile_id"] = profile.get("id", "")
+        if not self.coordinator.data:
+            return attrs
+
+        data = self.coordinator.data
+
+        # Catégorie
+        if data.get("category_name"):
+            attrs["category_name"] = data["category_name"]
+
+        # Media type
+        if data.get("media_type"):
+            attrs["media_type"] = data["media_type"]
+
+        # Stream URL
+        if data.get("stream_url"):
+            attrs["stream_url"] = data["stream_url"]
+
+        # EPG (programme en cours)
+        epg = data.get("epg")
+        if epg and isinstance(epg, dict):
+            attrs["epg_title"] = epg.get("title", "")
+            attrs["epg_description"] = epg.get("description", "")
+            attrs["epg_start_time"] = epg.get("start_time")
+            attrs["epg_end_time"] = epg.get("end_time")
+            attrs["epg_progress"] = epg.get("progress")
+        else:
+            attrs["epg_title"] = None
+            attrs["epg_description"] = None
+            attrs["epg_start_time"] = None
+            attrs["epg_end_time"] = None
+            attrs["epg_progress"] = None
+
+        # Profil
+        profile = data.get("profile", {})
+        if isinstance(profile, dict):
+            attrs["profile_name"] = profile.get("name", "")
+            attrs["profile_id"] = profile.get("id", "")
+
+        # Series info
+        series = data.get("series")
+        if series and isinstance(series, dict):
+            attrs["series_name"] = series.get("name", "")
+            attrs["series_season"] = series.get("season")
+            attrs["series_episode"] = series.get("episode")
+        else:
+            attrs["series_name"] = None
+            attrs["series_season"] = None
+            attrs["series_episode"] = None
+
+        # Is live
+        attrs["is_live"] = data.get("is_live", False)
+
         return attrs
 
     # --- Actions ---
@@ -250,6 +335,22 @@ class HippieTvMediaPlayer(
             await self._api.async_mute(mute)
         except HippieTvApiError as err:
             _LOGGER.error("Failed to mute: %s", err)
+        await self.coordinator.async_request_refresh()
+
+    async def async_volume_up(self) -> None:
+        """Volume up."""
+        try:
+            await self._api.async_volume_step("up")
+        except HippieTvApiError as err:
+            _LOGGER.error("Failed to volume up: %s", err)
+        await self.coordinator.async_request_refresh()
+
+    async def async_volume_down(self) -> None:
+        """Volume down."""
+        try:
+            await self._api.async_volume_step("down")
+        except HippieTvApiError as err:
+            _LOGGER.error("Failed to volume down: %s", err)
         await self.coordinator.async_request_refresh()
 
     async def async_select_source(self, source: str) -> None:
