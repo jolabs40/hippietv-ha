@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "HippieTV ({name})",
     "step": {
       "user": {
         "title": "Connect to HippieTV",
@@ -9,13 +10,21 @@
           "port": "Port",
           "scan_interval": "Polling interval (seconds)"
         }
+      },
+      "zeroconf_confirm": {
+        "title": "HippieTV discovered",
+        "description": "**{name}** found at {host}:{port}.\n\nWould you like to add this device?",
+        "data": {
+          "scan_interval": "Polling interval (seconds)"
+        }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect to HippieTV. Verify the IP, port, and that the webserver is running."
     },
     "abort": {
-      "already_configured": "This HippieTV device is already configured."
+      "already_configured": "This HippieTV device is already configured.",
+      "cannot_connect": "Cannot connect to the discovered HippieTV device."
     }
   }
 }
