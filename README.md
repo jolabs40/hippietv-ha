@@ -74,6 +74,32 @@ automation:
           entity_id: media_player.hippietv
 ```
 
+## Lovelace Card
+
+A custom card is included for a rich media player widget with Live TV, VOD, and Idle modes.
+
+### Installation
+
+1. Copy `www/hippietv-card.js` to your `<ha-config>/www/` directory
+2. In HA: **Settings > Dashboards > 3 dots > Resources > Add**
+   - URL: `/local/hippietv-card.js`
+   - Type: JavaScript Module
+3. Add the card to a dashboard:
+
+```yaml
+type: custom:hippietv-card
+entity: media_player.hippietv_192_168_x_x
+```
+
+### Card options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `entity` | *required* | Entity ID of the HippieTV media player |
+| `name` | HippieTV | Custom display name (shown in idle mode) |
+| `show_controls` | true | Show play/pause/stop/mute buttons |
+| `show_description` | true | Show EPG program description |
+
 ## Known limitations
 
 - **Volume**: `set_volume_level` may not work on Android TV (volume is managed by HDMI-CEC). Mute/unmute works. Use the Android TV integration for volume control.
