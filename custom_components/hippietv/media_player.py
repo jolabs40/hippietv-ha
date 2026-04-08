@@ -167,9 +167,14 @@ class HippieTvMediaPlayer(
 
     @property
     def media_image_url(self) -> str | None:
-        """Return the image URL (channel logo)."""
+        """Return the image URL (series cover for series, channel logo otherwise)."""
         if not self.coordinator.data:
             return None
+        series = self.coordinator.data.get("series")
+        if series and isinstance(series, dict):
+            cover = series.get("cover")
+            if cover:
+                return cover
         return self.coordinator.data.get("channel_logo") or None
 
     @property

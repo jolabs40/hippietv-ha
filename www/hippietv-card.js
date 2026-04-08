@@ -140,6 +140,8 @@ class HippieTvCard extends HTMLElement {
     const progressPct = Math.min(Math.round(progress * 100), 100);
     const isMuted = attrs.is_volume_muted || false;
 
+    const posterUrl = attrs.entity_picture || "";
+
     let html = this._getStyles() + `<div class="card">`;
 
     const seriesName = attrs.series_name || "";
@@ -155,6 +157,13 @@ class HippieTvCard extends HTMLElement {
       html += `<span class="badge series">\uD83D\uDCFA S\u00c9RIE</span>`;
     }
     html += `</div>`;
+
+    // Poster + info layout
+    html += `<div class="vod-layout${posterUrl ? " with-poster" : ""}">`;
+    if (posterUrl) {
+      html += `<img class="vod-poster" src="${this._esc(posterUrl)}" alt="">`;
+    }
+    html += `<div class="vod-info">`;
 
     // Series name
     if (isSeries && seriesName) {
@@ -173,6 +182,7 @@ class HippieTvCard extends HTMLElement {
 
     // Title
     html += `<div class="program-title">${this._esc(title)}</div>`;
+    html += `</div></div>`;
 
     // Progress bar
     if (duration > 0) {
@@ -420,6 +430,23 @@ class HippieTvCard extends HTMLElement {
         line-height: 1;
       }
       .control-btn:hover {
+        background: var(--divider-color, rgba(0,0,0,0.08));
+      }
+      .vod-layout {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 4px;
+      }
+      .vod-layout .vod-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .vod-poster {
+        width: 90px;
+        border-radius: 8px;
+        object-fit: cover;
+        aspect-ratio: 2/3;
+        flex-shrink: 0;
         background: var(--divider-color, rgba(0,0,0,0.08));
       }
       .idle-container {
