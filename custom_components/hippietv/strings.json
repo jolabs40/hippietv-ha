@@ -4,27 +4,42 @@
     "step": {
       "user": {
         "title": "Connect to HippieTV",
-        "description": "Enter the IP address of your Android TV device running HippieTV.",
+        "description": "Enter the IP address of your Android TV device running HippieTV, then open the TV (Welcome screen or Settings → Web Server → Link a browser) and type the 6-digit pairing code shown there.",
         "data": {
           "host": "Host (IP address)",
           "port": "Port",
+          "pin": "Pairing code (6 digits)",
           "scan_interval": "Polling interval (seconds)"
         }
       },
       "zeroconf_confirm": {
         "title": "HippieTV discovered",
-        "description": "**{name}** found at {host}:{port}.\n\nWould you like to add this device?",
+        "description": "**{name}** found at {host}:{port}.\n\nOn your TV, open the Welcome screen or Settings → Web Server → Link a browser to see a 6-digit pairing code, then enter it below.",
         "data": {
+          "pin": "Pairing code (6 digits)",
           "scan_interval": "Polling interval (seconds)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-link HippieTV",
+        "description": "The saved token for **{host}** is no longer valid (regenerated or revoked on the TV). Open HippieTV → Settings → Web Server → Link a browser and enter the new 6-digit pairing code.",
+        "data": {
+          "pin": "Pairing code (6 digits)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to HippieTV. Verify the IP, port, and that the webserver is running."
+      "cannot_connect": "Cannot connect to HippieTV. Verify the IP, port, and that the webserver is running.",
+      "invalid_pin": "Invalid pairing code. Make sure you typed the 6 digits shown on the TV.",
+      "pin_expired": "This pairing code has expired. Open the TV, generate a new one, and try again.",
+      "rate_limited": "Too many attempts. Wait a minute before trying again.",
+      "unknown": "Unexpected error. Check the logs for details."
     },
     "abort": {
       "already_configured": "This HippieTV device is already configured.",
-      "cannot_connect": "Cannot connect to the discovered HippieTV device."
+      "cannot_connect": "Cannot connect to the discovered HippieTV device.",
+      "reauth_failed": "Could not find the integration to re-link.",
+      "reauth_successful": "Re-linked successfully."
     }
   }
 }

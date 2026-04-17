@@ -17,6 +17,10 @@ class HippieTvConnectionError(HippieTvApiError):
     """Connection error."""
 
 
+class HippieTvAuthError(HippieTvApiError):
+    """Authentication error (missing/invalid/expired token)."""
+
+
 class HippieTvApi:
     """Client for the HippieTV NanoHTTPD API."""
 
@@ -25,29 +29,49 @@ class HippieTvApi:
         session: aiohttp.ClientSession,
         host: str,
         port: int,
+        token: str | None = None,
     ) -> None:
         self._session = session
         self._base_url = f"http://{host}:{port}"
+        self._token = token
 
     @property
     def base_url(self) -> str:
         return self._base_url
+
+    @property
+    def token(self) -> str | None:
+        return self._token
+
+    def set_token(self, token: str | None) -> None:
+        """Update the token (used after re-pairing)."""
+        self._token = token
 
     async def _request(
         self,
         method: str,
         path: str,
         json_data: dict | None = None,
+        *,
+        skip_auth: bool = False,
     ) -> Any:
-        """Make an API request."""
+        """Make an API request. Raises HippieTvAuthError on 401."""
         url = f"{self._base_url}{path}"
+        headers: dict[str, str] = {}
+        if self._token and not skip_auth:
+            headers["X-Api-Key"] = self._token
         try:
             async with asyncio.timeout(10):
                 resp = await self._session.request(
                     method,
                     url,
                     json=json_data,
+                    headers=headers,
                 )
+                if resp.status == 401:
+                    raise HippieTvAuthError(
+                        f"Unauthorized on {path} — token missing or invalid"
+                    )
                 resp.raise_for_status()
                 return await resp.json()
         except asyncio.TimeoutError as err:
@@ -58,6 +82,23 @@ class HippieTvApi:
             raise HippieTvConnectionError(
                 f"Error connecting to HippieTV: {err}"
             ) from err
+
+    # --- Pairing (unauthenticated) ---
+
+    async def async_pair(self, pin: str) -> str:
+        """Exchange a 6-digit PIN for the long-lived API token.
+
+        The PIN is displayed on the TV (Welcome screen or Settings →
+        Web Server → Link a browser). Returns the token on success.
+        """
+        data = await self._request(
+            "POST", "/api/auth/pair", {"pin": pin}, skip_auth=True
+        )
+        token = data.get("token") if isinstance(data, dict) else None
+        if not token:
+            raise HippieTvAuthError("Pairing response missing token")
+        self._token = token
+        return token
 
     # --- Status ---
 
@@ -173,9 +214,29 @@ class HippieTvApi:
     # --- Connection test ---
 
     async def async_test_connection(self) -> bool:
-        """Test if HippieTV is reachable."""
+        """Test if HippieTV is reachable AND the token is valid.
+
+        Returns False both for network errors and 401. Use async_ping()
+        if you need to distinguish the two.
+        """
         try:
             await self.async_get_status()
             return True
         except HippieTvApiError:
+            return False
+
+    async def async_ping(self) -> bool:
+        """Check TCP reachability without auth (calls an unauthenticated
+        endpoint). Returns True even if the token is missing/invalid."""
+        try:
+            # Use the pair endpoint with an obviously invalid PIN: a 401
+            # response means the server is up and responding. Any network
+            # error bubbles up as False.
+            await self._request(
+                "POST", "/api/auth/pair", {"pin": "invalid"}, skip_auth=True
+            )
+            return True
+        except HippieTvAuthError:
+            return True  # Server is up, just rejected the PIN
+        except HippieTvConnectionError:
             return False

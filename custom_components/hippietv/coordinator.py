@@ -5,12 +5,13 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
 
-from .api import HippieTvApi, HippieTvApiError
+from .api import HippieTvApi, HippieTvApiError, HippieTvAuthError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +37,9 @@ class HippieTvCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch player status from HippieTV."""
         try:
             return await self.api.async_get_player_status()
+        except HippieTvAuthError as err:
+            # Token révoqué ou regénéré côté TV → déclenche reauth flow
+            raise ConfigEntryAuthFailed(str(err)) from err
         except HippieTvApiError as err:
             raise UpdateFailed(
                 f"Error communicating with HippieTV: {err}"
