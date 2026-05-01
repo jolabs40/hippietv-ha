@@ -10,6 +10,9 @@ Custom integration to control [HippieTV](https://github.com/franck/hippietv) IPT
 - **Volume control** (limited on Android TV/CEC)
 - **Profile info** — active profile shown as attribute
 - **Automations** — use `media_player.play_media` to switch channels
+- **Mobile remote pairing card** — Lovelace card displaying a QR + 6-digit
+  PIN to pair a smartphone as a HippieTV mobile remote without touching
+  the TV (browse channels/movies/series, TV guide, transport controls)
 
 ## Requirements
 
@@ -99,6 +102,44 @@ entity: media_player.hippietv_192_168_x_x
 | `name` | HippieTV | Custom display name (shown in idle mode) |
 | `show_controls` | true | Show play/pause/stop/mute buttons |
 | `show_description` | true | Show EPG program description |
+
+## Mobile remote pairing card
+
+A second card lets you pair a smartphone as a HippieTV mobile remote
+(channels/movies/series browser, TV guide, transport controls) by scanning
+a QR code or typing a 6-digit PIN.
+
+### Installation
+
+1. Copy `www/hippietv-remote-card.js` to your `<ha-config>/www/` directory
+2. In HA: **Settings > Dashboards > 3 dots > Resources > Add**
+   - URL: `/local/hippietv-remote-card.js`
+   - Type: JavaScript Module
+3. Add the card to a dashboard:
+
+```yaml
+type: custom:hippietv-remote-card
+entity: media_player.hippietv_shieldtv
+```
+
+Tap **Generate PIN** in the card → a QR + PIN appears with a 5-min countdown.
+Scan the QR with any smartphone on the same LAN → the PWA loads, auto-pairs
+with the embedded PIN, and redirects to `/remote`. The PIN is single-use
+and rate-limited (5 attempts per IP per minute).
+
+### Underlying service
+
+The card calls the `hippietv.generate_remote_pin` service which you can
+also use in automations:
+
+```yaml
+service: hippietv.generate_remote_pin
+data:
+  entity_id: media_player.hippietv_shieldtv
+response_variable: remote
+```
+
+The response contains `pin`, `expires_in`, `remote_url`, `qr_data`.
 
 ## Known limitations
 

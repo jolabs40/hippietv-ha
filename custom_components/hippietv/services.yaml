@@ -1,0 +1,16 @@
+generate_remote_pin:
+  name: Generate remote pairing PIN
+  description: >-
+    Asks HippieTV to generate a fresh 6-digit pairing PIN (TTL 5 min). Used
+    by the Lovelace remote card to display a scannable QR + PIN so a
+    smartphone can pair as a mobile remote without touching the TV.
+  fields:
+    entity_id:
+      name: HippieTV media player
+      description: The HippieTV media_player entity to ask the PIN from.
+      required: true
+      example: media_player.hippietv_shieldtv
+      selector:
+        entity:
+          domain: media_player
+          integration: hippietv

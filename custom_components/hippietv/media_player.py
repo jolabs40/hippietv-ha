@@ -245,7 +245,11 @@ class HippieTvMediaPlayer(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra attributes for HA."""
-        attrs = {}
+        attrs: dict[str, Any] = {}
+        # URL de la PWA mobile télécommande (toujours exposée même quand
+        # le player est idle — permet à la carte Lovelace remote de
+        # construire le QR sans dépendre du polling du coordinator).
+        attrs["remote_url"] = self._api.base_url + "/"
         if not self.coordinator.data:
             return attrs
 

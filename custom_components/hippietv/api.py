@@ -100,6 +100,25 @@ class HippieTvApi:
         self._token = token
         return token
 
+    async def async_generate_pairing_pin(self) -> dict:
+        """Demande à HippieTV de générer un PIN d'appairage frais.
+
+        Le PIN (6 chiffres, TTL 5 min) sera aussi visible côté TV via
+        LinkBrowserDialog. Permet à HA d'afficher un QR + PIN dans une
+        carte Lovelace pour appairer un mobile sans manipuler la TV.
+
+        Retourne {"pin": "123456", "expires_in": 300}.
+        """
+        return await self._request("POST", "/api/auth/pin/generate")
+
+    async def async_get_pin_status(self) -> dict:
+        """État du PIN courant (consommé / TTL restant).
+
+        Retourne {"has_active_pin": bool, "pin": str|null,
+        "remaining_seconds": int, "consumed": bool}.
+        """
+        return await self._request("GET", "/api/auth/pin/status")
+
     # --- Status ---
 
     async def async_get_status(self) -> dict:
