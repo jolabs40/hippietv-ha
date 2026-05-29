@@ -72,7 +72,7 @@ GET /api/player/status returns:
 - ZeroconfServiceInfo imported via TYPE_CHECKING only (avoids import crash if zeroconf not loaded)
 
 ## Deploy
-- Source: C:\Users\frada\StudioProjects\hippietv-ha\custom_components\hippietv\
+- Source: C:\Users\frada\StudioProjects\hippietv-suite\hippietv-ha\custom_components\hippietv\
 - HA Samba: H:\custom_components\hippietv\
 - Restart HA: POST http://192.168.2.111:8123/api/services/homeassistant/restart (with Bearer token)
 
@@ -82,3 +82,11 @@ GET /api/player/status returns:
 - Config options: entity (required), name, show_controls, show_description
 - Includes visual card editor (HippieTvCardEditor)
 - Labels in French (EN DIRECT, EN PAUSE, FILM, SERIE, En attente)
+
+---
+
+## Charte graphique
+
+Ce projet fait partie de **hippietv-suite/**. Il n'a pas d'assets visuels propres dans `../design/` (la Lovelace card utilise les CSS variables Home Assistant pour le theming), mais la charte graphique commune de la famille HippieTV (palette Blue Night, typographie, logo guidelines) est dans `../design/charte-graphique/` et doit être respectée si on introduit des éléments visuels propres (badges, status indicators, icônes custom).
+
+Référence : `../design/README.md`.
