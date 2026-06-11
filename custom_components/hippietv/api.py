@@ -114,8 +114,9 @@ class HippieTvApi:
     async def async_get_pin_status(self) -> dict:
         """État du PIN courant (consommé / TTL restant).
 
-        Retourne {"has_active_pin": bool, "pin": str|null,
-        "remaining_seconds": int, "consumed": bool}.
+        Retourne {"has_active_pin": bool, "remaining_seconds": int,
+        "consumed": bool}. La valeur du PIN n'est jamais renvoyée par
+        cet endpoint (secret hors-bande, affiché sur la TV uniquement).
         """
         return await self._request("GET", "/api/auth/pin/status")
 
